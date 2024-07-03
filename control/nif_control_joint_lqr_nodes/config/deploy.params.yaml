@@ -1,0 +1,19 @@
+/**:
+  ros__parameters:
+    lqr_config_file: ''
+    max_steering_angle_deg: 16.0 #Monza
+    steering_auto_override_deg: 4.0
+    steering_units_multiplier: 1.0
+    pure_pursuit_min_dist_m: 2.5 #3.0
+    pure_pursuit_max_dist_m: 6.5
+    pure_pursuit_1st_vel_ms: 20.0
+    pure_pursuit_max_max_dist_m: 13.0
+    pure_pursuit_k_vel_m_ms: 0.7
+    use_tire_velocity: true
+    odometry_timeout_sec: 0.1
+    path_timeout_sec: 0.5
+    steering_max_ddeg_dt: 40.0 #Monza RC setup #Oval track setup = 3.0
+    invert_steering: false
+    use_acc: false # if true, min(node_output,acc_cmd) is published. 
+    accel_p_gain: 0.0
+    accel_i_gain: 0.0

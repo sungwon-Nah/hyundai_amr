@@ -1,0 +1,55 @@
+10mps:
+  accel_p_gain: 0.1
+  accel_i_gain: 0.0
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+
+20mps:
+  accel_p_gain: 0.1
+  accel_i_gain: 0.0
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+
+30mps:
+  accel_p_gain: 0.05
+  accel_i_gain: 0.1
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+
+40mps:
+  accel_p_gain: 0.05
+  accel_i_gain: 0.0
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+
+50mps:
+  accel_p_gain: 0.6
+  accel_i_gain: 0.2
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+
+60mps:
+  accel_p_gain: 0.8
+  accel_i_gain: 0.3
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+
+70mps:
+  accel_p_gain: 0.8
+  accel_i_gain: 0.3
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+
+80mps:
+  accel_p_gain: 0.8
+  accel_i_gain: 0.3
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+
+90mps:
+  accel_p_gain: 0.8
+  accel_i_gain: 0.3
+  decel_p_gain: 0.6
+  decel_i_gain: 0.12
+  
+

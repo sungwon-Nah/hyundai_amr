@@ -1,0 +1,5 @@
+builtin_interfaces/Time stamp
+uint8 base_to_car_heartbeat
+
+float32 gps_lat
+float32 gps_long

@@ -1,0 +1,43 @@
+session_name: nifbasestation_launch
+windows:
+  - window_name: Joystick Launch
+    layout: tiled
+    panes:
+    - shell_command:
+      - sleep 2
+      - ros2 run telemetry_bs_lte telemetry_lte
+    - shell_command:
+      - ros2 launch joystick_vehicle_interface_nodes joystick_vehicle_interface_node.launch.py
+  - window_name: User Inputs
+    layout: tiled
+    panes:
+    - shell_command:
+      # - # ros2 run userinput ui_raceflag
+      - QT_DEBUG_PLUGINS=1 ros2 run plotjuggler plotjuggler -l src/py_pubsub/assets/new_plot.xml
+    - shell_command:
+      # - # ros2 run userinput ui_publisher
+      - QT_DEBUG_PLUGINS=1 ros2 run py_pubsub plot 
+    - shell_command:
+      # - /workspace/operations/scripts/remote_spoof_spawn.sh
+        - sleep 2
+        - autera_lte
+    - shell_command:
+      # - /workspace/operations/scripts/remote_sensors_bagging.sh
+        - sleep 2
+        - autera_lte
+        - ros2 topic echo /Float32/match_converged
+
+  - window_name: Ping and State
+    layout: even-horizontal
+    options:
+      main-pane-height: 7
+    panes:
+    - shell_command:
+      - echo "PING for 100.96.1.2 (Autera)"
+      - ping 100.96.1.2
+    - shell_command:
+      - sleep 5
+      - ros2 topic echo /nif_telemetry/telemetry nif_msgs/msg/Telemetry
+    - shell_command:
+      - sleep 5
+      - ros2 topic echo /nif_telemetry/system_status nif_msgs/msg/SystemStatus

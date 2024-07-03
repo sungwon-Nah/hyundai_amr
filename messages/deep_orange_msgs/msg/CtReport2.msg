@@ -1,0 +1,4 @@
+builtin_interfaces/Time stamp
+uint8 marelli_track_flag_ack
+uint8 marelli_vehicle_flag_ack
+uint8 marelli_sector_flag_ack

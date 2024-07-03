@@ -1,0 +1,23 @@
+numpy
+numba
+filterpy
+scikit-learn
+matplotlib
+pillow
+opencv-python
+glob2
+git+https://github.com/DanielPollithy/pypcd.git
+
+# torch==1.10.2
+
+scipy
+xml-python
+cvxopt
+pyserial
+pickle5
+# gymnasium
+pygame
+
+# torch==2.0.0 
+# torchvision==0.15.1 
+# torchaudio==2.0.1

@@ -1,0 +1,7 @@
+uint32 heading_deg  #same as Heading2 value
+
+---
+
+bool success
+string message
+uint32 heading

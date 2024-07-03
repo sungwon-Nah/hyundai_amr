@@ -1,0 +1,6 @@
+bool initialize
+
+---
+
+bool success
+string message

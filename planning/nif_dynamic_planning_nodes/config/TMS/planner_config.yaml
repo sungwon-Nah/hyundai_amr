@@ -1,0 +1,58 @@
+waypoint_manager_param:
+  warmup_wpt_path: 'maps/TMS/warmup_wpt.csv'
+  pit_wpt_path: 'maps/TMS/pit_wpt.csv'
+  maptrack_size: 200
+
+path_candidates_param:
+  racingline_path: 'maps/TMS/race_line.csv'
+  pitlane_path: 'maps/TMS/pit_lane_littlebit_right.csv'
+  # defenderline_path: 'maps/TMS/left_side_center.csv'
+  # racingline_path: 'maps/TMS/left_side_center.csv'
+  centerline_path: 'maps/TMS/centerline.csv'
+  defenderline_path: 'maps/TMS/left_race_line.csv'
+  staybehindline_path: 'maps/TMS/race_line.csv'
+  # MUST : right --> left order
+  # overtaking_candidate_path_alias_array: [
+  #   'right_center',
+  #   'center',
+  #   'left_center',
+  # ]
+  overtaking_candidate_path_alias_array: [
+    # 'right_center',    
+    'right_raceline',
+    'left_raceline'
+    
+  ]
+
+  # Alias list (MUST : follow this naming convention)
+  # [right,right_center,center,left_center,left]
+
+  # MUST : right --> left order
+  # UNDER CONSIDERATION : including racing line as a overtaking path?
+  # overtaking_candidate_path_array: [
+  #   'maps/TMS/right_side_center.csv',
+  #   'maps/TMS/centerline.csv',
+  #   'maps/TMS/left_side_center.csv',
+  # ]
+  overtaking_candidate_path_array: [
+    # 'maps/TMS/race_line.csv',
+    # 'maps/TMS/right_side_center.csv',
+    # 'maps/TMS/centerline.csv',
+    'maps/TMS/right_race_line.csv',
+    'maps/TMS/left_race_line.csv'
+  ]
+
+planning_params:
+  splining_interval: 1.0 # [m]
+  follow_enable_dist: 50 # [m]
+  planning_horizon_t: 4.0 # [sec]
+  planning_dt: 0.25 # [sec]
+  max_accel: 2.0 # [mpss]
+  overtaking_longitudinal_margin: 15.0 # [m]
+  overtaking_lateral_margin: 2.0 # [m]
+  merging_longitudinal_margin: 15.0 # [m]
+  merging_allow_dist_to_racingline: 1.0 # [m] : maximum euclidean distance allowes merging back to the raceline
+
+collision_checking_params:
+  overlap_checking_dist_bound: 3.0 # [m] 
+  overlap_checking_time_bound: 0.3 # [sec]

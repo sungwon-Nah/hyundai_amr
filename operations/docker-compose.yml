@@ -1,0 +1,53 @@
+version: '2.4'
+services:
+    hyundaiamr:
+        image: hyundai/amr:latest
+        # user: "1001:1001"
+        build:
+          # docker build context
+          context: ${HYUNDAI_AMR_ROOT}
+          dockerfile: ${HYUNDAI_AMR_ROOT}/operations/dockerfiles/autonomy.Dockerfile
+        runtime: nvidia 
+        container_name: hyundaiamr
+        tty: true
+        # command: ["source /opt/ros/humble/setup.bash && exec bash"]
+        network_mode: "host"
+        privileged: true
+        security_opt:
+            - seccomp:unconfined
+        environment:
+            - NVIDIA_VISIBLE_DEVICES=all
+            - NVIDIA_DRIVER_CAPABILITIES=all
+            - DISPLAY=$DISPLAY 
+        devices:
+            - /dev/video2:/dev/video2
+        volumes:
+            # - ${HYUNDAI_AMR_ROOT}/operations:/workspace/operations
+            # - ${HYUNDAI_AMR_ROOT}/build:/workspace/build
+            # - ${HYUNDAI_AMR_ROOT}/install:/workspace/install
+            # - ${HYUNDAI_AMR_ROOT}/src/joystick_vehicle_interface:/workspace/src/joystick_vehicle_interface
+            # - ${HYUNDAI_AMR_ROOT}/src/joystick_vehicle_interface_nodes:/workspace/src/joystick_vehicle_interface_nodes
+            # - ${HYUNDAI_AMR_ROOT}/src/userinput:/workspace/src/userinput
+            # - ${HYUNDAI_AMR_ROOT}/src/bvs_msgs:/workspace/src/bvs_msgs
+            # - ${HYUNDAI_AMR_ROOT}/src/deep_orange_msgs:/workspace/src/deep_orange_msgs
+            # - ${HYUNDAI_AMR_ROOT}/src/nif_msgs:/workspace/src/nif_msgs
+            # - ${HYUNDAI_AMR_ROOT}/src/py_pubsub:/workspace/src/py_pubsub
+            # - ${HYUNDAI_AMR_ROOT}/src/telemetry_bs:/workspace/src/telemetry_bs
+            # - ${HYUNDAI_AMR_ROOT}/src/telemetry_bs_lte:/workspace/src/telemetry_bs_lte
+            # - ${HYUNDAI_AMR_ROOT}/src/rmw_cyclonedds:/workspace/src/rmw_cyclonedds
+            # - ${HYUNDAI_AMR_ROOT}:/workspace
+            - ${AMR_WS}:/amr_ws/:z 
+            - ${HYUNDAI_AMR_ROOT}:/amr_ws/src/:rw            
+            - /tmp/.X11-unix:/tmp/.X11-unix
+            - /etc/localtime:/etc/localtime:ro
+            - /dev/input:/dev/input
+            - /etc/sudoers.d:/etc/sudoers.d:ro
+            - /etc/group:/etc/group:ro
+            - /etc/passwd:/etc/passwd:ro
+            - /etc/shadow:/etc/shadow:ro
+            - /usr/local/cuda:/usr/local/cuda
+            - /dev/GQ7MAIN:/dev/GQ7MAIN
+            - /dev/GQ7AUX:/dev/GQ7AUX
+            - /media/sungwon-nah:/amr_ws/bag/:z
+
+            # - ${HYUNDAI_AMR_ROOT}/src/zenoh-bridge-dds/target_IAC2/zenoh-bridge-dds:/usr/bin/zenoh-bridge-dds
