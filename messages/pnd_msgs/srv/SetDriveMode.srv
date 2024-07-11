@@ -1,0 +1,7 @@
+uint16 mode_request 
+
+---
+
+bool success
+string message
+uint16 current_mode
