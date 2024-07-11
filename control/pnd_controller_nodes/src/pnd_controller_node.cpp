@@ -134,9 +134,53 @@ void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
 
       
     }
-    else if(drive_mode == pnd_msgs::msg::DriveMode::ACKERMANN)
+    else if (drive_mode == pnd_msgs::msg::DriveMode::ACKERMANN)
     {
-      //JH
+      double fl_steer = 0.0;
+      double fr_steer = 0.0;
+      double rl_steer = 0.0;
+      double rr_steer = 0.0;
+
+      double fl_speed = 0.0;
+      double fr_speed = 0.0;
+      double rl_speed = 0.0;
+      double rr_speed = 0.0;
+
+      double L = total_wheelbase_length;
+      double W = track_width;
+
+      double v = vel_x; 
+      double omega = vel_yaw;
+
+      // Assume no slip
+      double delta = atan2(L * omega, v);
+
+      // Constrain delta within (-90, 90)
+      if (delta > M_PI_2 || delta < -M_PI_2) {
+        RCLCPP_WARN(this->get_logger(), "Calculated delta angle is out of range: %f", delta);
+      }
+
+      // Constrain delta within (-30, 30) degrees
+      if (delta > M_PI / 6) {
+        delta = M_PI / 6;
+      } else if (delta < -M_PI / 6) {
+        delta = -M_PI / 6;
+      }
+
+      // Update steering angle at each wheel
+      fl_steer = atan2(L * tan(delta), (L + 0.5 * W * tan(delta)));
+      fr_steer = atan2(L * tan(delta), (L - 0.5 * W * tan(delta)));
+      rl_steer = 0.0; // Ackermann
+      rr_steer = 0.0; // Ackermann
+
+      // Update velocity at each wheel
+      rl_speed = 0; // RWD
+      rr_speed = 0; // RWD
+      rl_speed = (L + 0.5 * W * tan(delta)) / L * v;
+      rr_speed = (L - 0.5 * W * tan(delta)) / L * v;
+
+      publish_speed_cmd(fl_speed, fr_speed, rl_speed, rr_speed);
+      publish_steer_cmd(fl_steer, fr_steer, rl_steer, rr_steer);
     }
     else
     {
