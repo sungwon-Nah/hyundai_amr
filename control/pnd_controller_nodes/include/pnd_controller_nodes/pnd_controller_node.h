@@ -13,6 +13,7 @@
 #include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <pnd_msgs/msg/drive_mode.hpp>
+#include <pnd_msgs/msg/four_wheel_drive.hpp>
 #include <pnd_msgs/srv/set_drive_mode.hpp>
 
 #include <iostream>
@@ -40,8 +41,7 @@ public:
 private:
     void VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
-    void publish_speed_cmd(double fl_speed, double fr_speed, double rl_speed, double rr_speed);
-    void publish_steer_cmd(double fl_speed, double fr_speed, double rl_speed, double rr_speed);
+    void publish_four_wheel_cmd(double fl_speed, double fr_speed, double rl_speed, double rr_speed, double fl_steer, double fr_steer, double rl_steer, double rr_steer);
    
 
     std::vector<double> CalculateLoadTransfer();
@@ -61,8 +61,7 @@ private:
     
     rclcpp::TimerBase::SharedPtr timer_;
 
-    rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr pnd_steer_pub;
-    rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr pnd_speed_pub;
+    rclcpp::Publisher<pnd_msgs::msg::FourWheelDrive>::SharedPtr pnd_four_wheel_cmd_pub;
     rclcpp::Publisher<pnd_msgs::msg::DriveMode>::SharedPtr pnd_drivemode_pub;
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr vel_sub;
@@ -91,7 +90,11 @@ private:
     double vel_yaw;
 
     int drive_mode = 2; // Default : Ackerman mode
-    
+
+    double prev_fl_steer = 0.0;
+    double prev_fr_steer = 0.0;
+    double prev_rl_steer = 0.0;
+    double prev_rr_steer = 0.0;   
 };  
 
 

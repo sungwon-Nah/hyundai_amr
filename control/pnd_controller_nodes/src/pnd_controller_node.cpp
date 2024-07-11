@@ -29,9 +29,7 @@ PnDControlNode::PnDControlNode()
     this->friction_coefficient = this->get_parameter("friction_coefficient").as_double();
     // this->test_mode = this->get_parameter("test_mode").as_bool();
 
-
-    pnd_steer_pub = this->create_publisher<std_msgs::msg::Float32MultiArray>("/pnd_steer_cmd", 10); //FL, FR, RL, RR
-    pnd_speed_pub = this->create_publisher<std_msgs::msg::Float32MultiArray>("/pnd_speed_cmd", 10); //FL, FR, RL, RR
+    pnd_four_wheel_cmd_pub = this->create_publisher<pnd_msgs::msg::FourWheelDrive>("/pnd_four_wheel_cmd", 10); //speed: FL, FR, RL, RR, steer: FL, FR, RL, RR
     pnd_drivemode_pub = this->create_publisher<pnd_msgs::msg::DriveMode>("/pnd_drive_mode", 10);
 
     vel_sub = this->create_subscription<geometry_msgs::msg::Twist>(
@@ -59,26 +57,19 @@ void PnDControlNode::timerCallback()
 
 }
 
-void PnDControlNode::publish_speed_cmd(double fl_speed, double fr_speed, double rl_speed, double rr_speed)
+void PnDControlNode::publish_four_wheel_cmd(double fl_speed, double fr_speed, double rl_speed, double rr_speed, double fl_steer, double fr_steer, double rl_steer, double rr_steer)
 {
-  std_msgs::msg::Float32MultiArray pnd_speed_array;
-  pnd_speed_array.data.push_back(fl_speed);
-  pnd_speed_array.data.push_back(fr_speed);
-  pnd_speed_array.data.push_back(rl_speed);
-  pnd_speed_array.data.push_back(rr_speed);
-  pnd_speed_pub->publish(pnd_speed_array);
+  auto msg = pnd_msgs::msg::FourWheelDrive();
+  msg.speed.data.push_back(fl_speed);
+  msg.speed.data.push_back(fr_speed);
+  msg.speed.data.push_back(rl_speed);
+  msg.speed.data.push_back(rr_speed);
+  msg.steer.data.push_back(fl_steer);
+  msg.steer.data.push_back(fr_steer);
+  msg.steer.data.push_back(rl_steer);
+  msg.steer.data.push_back(rr_steer);
+  pnd_four_wheel_cmd_pub->publish(msg);
 }
-
-void PnDControlNode::publish_steer_cmd(double fl_steer, double fr_steer, double rl_steer, double rr_steer)
-{
-  std_msgs::msg::Float32MultiArray pnd_steer_array;
-  pnd_steer_array.data.push_back(fl_steer);
-  pnd_steer_array.data.push_back(fr_steer);
-  pnd_steer_array.data.push_back(rl_steer);
-  pnd_steer_array.data.push_back(rr_steer);
-  pnd_steer_pub->publish(pnd_steer_array);
-}
-
 
 void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
 {
@@ -88,51 +79,129 @@ void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
     vel_x = msg->linear.x;
     vel_yaw = msg->angular.z;
 
-    if(drive_mode == pnd_msgs::msg::DriveMode::ZERO_TURN)
+    if(drive_mode == pnd_msgs::msg::DriveMode::ZERO_TURN) // assuming positive steering angle meaning the servo turning left.
     {
-      // SJ
-    }
-    else if(drive_mode == pnd_msgs::msg::DriveMode::DIFFERENTIAL)
-    {
-      double ref_R = vel_x + vel_yaw * track_width / 2.0;
-      double ref_L = vel_x - vel_yaw * track_width / 2.0;
+      double fl_steer = 0.0;
+      double fr_steer = 0.0;
+      double rl_steer = 0.0;
+      double rr_steer = 0.0;
 
       double fl_speed = 0.0;
       double fr_speed = 0.0;
       double rl_speed = 0.0;
       double rr_speed = 0.0;
 
-      if(ref_R < 0.0)
-      {
-        fr_speed = 0.0;
-        rr_speed = 0.0;
+      if (vel_x != 0.0) {
+        RCLCPP_WARN(this->get_logger(), "Linear velocity must be 0. Switching to Differential Drive. Commnaded linear velocity: %f", vel_x);
+        drive_mode = pnd_msgs::msg::DriveMode::DIFFERENTIAL;
       }
-      else
-      {
-        fr_speed = ref_R;
-        rr_speed = ref_R;
+      else {
+        double direction = 0.0;
+        double ref_speed = vel_yaw * track_width / sqrt(2);
+        double wheel_orientation = 0.0;
+
+        if (prev_fl_steer > (1/4)*M_PI_2 && prev_fl_steer < (-3/4)*M_PI_2) {
+          fl_steer = (3/4)*M_PI;
+          wheel_orientation = -1;
+        }
+        else {
+          fl_steer = -M_PI/4;
+          wheel_orientation = 1;
+        }
+        if (prev_fr_steer > (3/4)*M_PI_2 && prev_fr_steer < (-1/4)*M_PI_2) {
+          fr_steer = (3/4)*M_PI;
+          wheel_orientation = -1;
+        }
+        else {
+          fr_steer = M_PI/4;
+          wheel_orientation = 1;
+        }
+        if (prev_rl_steer > (3/4)*M_PI_2 && prev_rl_steer < (-1/4)*M_PI_2) {
+          rl_steer = (-3/4)*M_PI;
+          wheel_orientation = -1;
+        }
+        else {
+          rl_steer = M_PI/4;
+          wheel_orientation = 1;
+        }
+        if (prev_rr_steer > (1/4)*M_PI_2 && prev_rr_steer < (-3/4)*M_PI_2) {
+          rr_steer = (3/4)*M_PI;
+          wheel_orientation = -1;
+        }
+        else {
+          rr_steer = -M_PI/4;
+          wheel_orientation = 1;
+        }
+
+        if (vel_yaw < 0) {
+          direction = -1;
+        }
+        else {
+          direction = 1;
+        }
+
+        fl_speed = -direction*wheel_orientation*ref_speed;
+        fr_speed = direction*wheel_orientation*ref_speed;
+        rl_speed = -direction*wheel_orientation*ref_speed;
+        rr_speed = direction*wheel_orientation*ref_speed;
+
+        publish_four_wheel_cmd(fl_speed, fr_speed, rl_speed, rr_speed, fl_steer, fr_steer, rl_steer, rr_steer);
+
+        prev_fl_steer = fl_steer;
+        prev_fr_steer = fr_steer;
+        prev_rl_steer = rl_steer;
+        prev_rr_steer = rr_steer; 
       }
-
-      if(ref_L < 0.0)
-      {
-        fl_speed = 0.0;
-        rl_speed = 0.0;
+    }
+    else if(drive_mode == pnd_msgs::msg::DriveMode::DIFFERENTIAL)
+    {
+      if (vel_x == 0.0) {
+        RCLCPP_WARN(this->get_logger(), "Linear velocity is 0. Switching to ZeroTurn. Commnaded linear velocity: %f", vel_x);
+        drive_mode = pnd_msgs::msg::DriveMode::ZERO_TURN;
       }
-      else
-      {
-        fl_speed = ref_L;
-        rl_speed = ref_L;
+      else {
+        double ref_R = vel_x + vel_yaw * track_width / 2.0;
+        double ref_L = vel_x - vel_yaw * track_width / 2.0;
+
+        double fl_speed = 0.0;
+        double fr_speed = 0.0;
+        double rl_speed = 0.0;
+        double rr_speed = 0.0;
+
+        if(ref_R < 0.0)
+        {
+          fr_speed = 0.0;
+          rr_speed = 0.0;
+        }
+        else
+        {
+          fr_speed = ref_R;
+          rr_speed = ref_R;
+        }
+
+        if(ref_L < 0.0)
+        {
+          fl_speed = 0.0;
+          rl_speed = 0.0;
+        }
+        else
+        {
+          fl_speed = ref_L;
+          rl_speed = ref_L;
+        }
+
+        double fl_steer = 0.0;
+        double fr_steer = 0.0;
+        double rl_steer = 0.0;
+        double rr_steer = 0.0;
+        
+        publish_four_wheel_cmd(fl_speed, fr_speed, rl_speed, rr_speed, fl_steer, fr_steer, rl_steer, rr_steer);
+
+        prev_fl_steer = fl_steer;
+        prev_fr_steer = fr_steer;
+        prev_rl_steer = rl_steer;
+        prev_rr_steer = rr_steer; 
       }
-
-      double fl_steer = 0.0;
-      double fr_steer = 0.0;
-      double rl_steer = 0.0;
-      double rr_steer = 0.0;
-
-      publish_speed_cmd(fl_speed, fr_speed, rl_speed, rr_speed);
-      publish_steer_cmd(fl_steer, fr_steer, rl_steer, rr_steer);
-
-      
     }
     else if (drive_mode == pnd_msgs::msg::DriveMode::ACKERMANN)
     {
@@ -148,39 +217,48 @@ void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
 
       double L = total_wheelbase_length;
       double W = track_width;
-
-      double v = vel_x; 
-      double omega = vel_yaw;
-
-      // Assume no slip
-      double delta = atan2(L * omega, v);
-
-      // Constrain delta within (-90, 90)
-      if (delta > M_PI_2 || delta < -M_PI_2) {
-        RCLCPP_WARN(this->get_logger(), "Calculated delta angle is out of range: %f", delta);
+      if (vel_x == 0.0) {
+        RCLCPP_WARN(this->get_logger(), "Linear velocity is 0. Switching to ZeroTurn. Commnaded linear velocity: %f", vel_x);
+        drive_mode = pnd_msgs::msg::DriveMode::ZERO_TURN;
       }
+      else {
+        double v = vel_x; 
+        double omega = vel_yaw;
 
-      // Constrain delta within (-30, 30) degrees
-      if (delta > M_PI / 6) {
-        delta = M_PI / 6;
-      } else if (delta < -M_PI / 6) {
-        delta = -M_PI / 6;
-      }
+        // Assume no slip
+        double delta = atan2(L * omega, v);
 
-      // Update steering angle at each wheel
-      fl_steer = atan2(L * tan(delta), (L + 0.5 * W * tan(delta)));
-      fr_steer = atan2(L * tan(delta), (L - 0.5 * W * tan(delta)));
-      rl_steer = 0.0; // Ackermann
-      rr_steer = 0.0; // Ackermann
+        // Constrain delta within (-90, 90)
+        if (delta > M_PI_2 || delta < -M_PI_2) {
+          RCLCPP_WARN(this->get_logger(), "Calculated delta angle is out of range: %f", delta);
+        }
 
-      // Update velocity at each wheel
-      rl_speed = 0; // RWD
-      rr_speed = 0; // RWD
-      rl_speed = (L + 0.5 * W * tan(delta)) / L * v;
-      rr_speed = (L - 0.5 * W * tan(delta)) / L * v;
+        // Constrain delta within (-30, 30) degrees
+        if (delta > M_PI / 6) {
+          delta = M_PI / 6;
+        } else if (delta < -M_PI / 6) {
+          delta = -M_PI / 6;
+        }
 
-      publish_speed_cmd(fl_speed, fr_speed, rl_speed, rr_speed);
-      publish_steer_cmd(fl_steer, fr_steer, rl_steer, rr_steer);
+        // Update steering angle at each wheel
+        fl_steer = atan2(L * tan(delta), (L + 0.5 * W * tan(delta)));
+        fr_steer = atan2(L * tan(delta), (L - 0.5 * W * tan(delta)));
+        rl_steer = 0.0; // Ackermann
+        rr_steer = 0.0; // Ackermann
+
+        // Update velocity at each wheel
+        rl_speed = 0; // RWD
+        rr_speed = 0; // RWD
+        rl_speed = (L + 0.5 * W * tan(delta)) / L * v;
+        rr_speed = (L - 0.5 * W * tan(delta)) / L * v;
+
+        publish_four_wheel_cmd(fl_speed, fr_speed, rl_speed, rr_speed, fl_steer, fr_steer, rl_steer, rr_steer);
+
+        prev_fl_steer = fl_steer;
+        prev_fr_steer = fr_steer;
+        prev_rl_steer = rl_steer;
+        prev_rr_steer = rr_steer;
+      } 
     }
     else
     {
@@ -196,14 +274,11 @@ void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
       double rl_steer = 0.0;
       double rr_steer = 0.0;
 
-      publish_speed_cmd(fl_speed, fr_speed, rl_speed, rr_speed);
-      publish_steer_cmd(fl_steer, fr_steer, rl_steer, rr_steer);
+      publish_four_wheel_cmd(fl_speed, fr_speed, rl_speed, rr_speed, fl_steer, fr_steer, rl_steer, rr_steer);
 
     }
      
 }
-
-
 
 void PnDControlNode::service_handler_dvive_mode(
     const std::shared_ptr<rmw_request_id_t> request_header,
