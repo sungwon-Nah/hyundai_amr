@@ -82,7 +82,6 @@ private:
     double total_mass = 0.;
     double moment_of_inertia = 0.;
     double friction_coefficient = 0.;
-    double hysteresis_band = 0.;
 
     bool b_imu_first_callback = false;
     bool b_vel_first_callback = false;

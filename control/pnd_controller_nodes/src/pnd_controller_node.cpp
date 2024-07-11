@@ -10,12 +10,11 @@ PnDControlNode::PnDControlNode()
     this->declare_parameter<double>("total_wheelbase_length", 3.0);
     this->declare_parameter<double>("front_wheelbase_length", 1.155);
     this->declare_parameter<double>("rear_wheelbase_length", 1.815);
-    this->declare_parameter<double>("track_width", 1.64);
+    this->declare_parameter<double>("track_width", 0.2);
     this->declare_parameter<double>("gravity_acceleration", 9.80665);
     this->declare_parameter<double>("total_mass", 2065.03);
     this->declare_parameter<double>("moment_of_inertia", 2900.3);
     this->declare_parameter<double>("friction_coefficient", 1.0);
-    this->declare_parameter<double>("hysteresis_band", 1.0);
     // this->declare_parameter<bool>("test_mode", true);
    
 
@@ -28,7 +27,6 @@ PnDControlNode::PnDControlNode()
     this->total_mass = this->get_parameter("total_mass").as_double();
     this->moment_of_inertia = this->get_parameter("moment_of_inertia").as_double();
     this->friction_coefficient = this->get_parameter("friction_coefficient").as_double();
-    this->hysteresis_band = this->get_parameter("hysteresis_band").as_double();
     // this->test_mode = this->get_parameter("test_mode").as_bool();
 
 
@@ -88,7 +86,7 @@ void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
       b_vel_first_callback = true;
 
     vel_x = msg->linear.x;
-    vel_yaw = -msg->angular.z;
+    vel_yaw = msg->angular.z;
 
     if(drive_mode == pnd_msgs::msg::DriveMode::ZERO_TURN)
     {
@@ -96,7 +94,45 @@ void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
     }
     else if(drive_mode == pnd_msgs::msg::DriveMode::DIFFERENTIAL)
     {
-      // SW
+      double ref_R = vel_x + vel_yaw * track_width / 2.0;
+      double ref_L = vel_x - vel_yaw * track_width / 2.0;
+
+      double fl_speed = 0.0;
+      double fr_speed = 0.0;
+      double rl_speed = 0.0;
+      double rr_speed = 0.0;
+
+      if(ref_R < 0.0)
+      {
+        fr_speed = 0.0;
+        rr_speed = 0.0;
+      }
+      else
+      {
+        fr_speed = ref_R;
+        rr_speed = ref_R;
+      }
+
+      if(ref_L < 0.0)
+      {
+        fl_speed = 0.0;
+        rl_speed = 0.0;
+      }
+      else
+      {
+        fl_speed = ref_L;
+        rl_speed = ref_L;
+      }
+
+      double fl_steer = 0.0;
+      double fr_steer = 0.0;
+      double rl_steer = 0.0;
+      double rr_steer = 0.0;
+
+      publish_speed_cmd(fl_speed, fr_speed, rl_speed, rr_speed);
+      publish_steer_cmd(fl_steer, fr_steer, rl_steer, rr_steer);
+
+      
     }
     else if(drive_mode == pnd_msgs::msg::DriveMode::ACKERMANN)
     {

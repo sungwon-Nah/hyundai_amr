@@ -4,9 +4,8 @@
     total_wheelbase_length : 3.0 
     front_wheelbase_length : 1.155
     rear_wheelbase_length : 1.815
-    track_width : 1.64
+    track_width : 0.2
     gravity_acceleration : 9.80665
     total_mass : 2065.03
     moment_of_inertia : 2900.3
     friction_coefficient : 1.0
-    hysteresis_band : 1000.0
