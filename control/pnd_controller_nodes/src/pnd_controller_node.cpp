@@ -106,46 +106,51 @@ void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
       else {
         double direction = 0.0;
         double ref_speed = vel_yaw * track_width / sqrt(2);
-        double wheel_orientation = 0.0;
+        double wheel_orientation = 1.0;
 
-        if (prev_fl_steer > (1/4)*M_PI_2 && prev_fl_steer < (-3/4)*M_PI_2) {
-          fl_steer = (3/4)*M_PI;
-          wheel_orientation = -1;
-        }
-        else {
-          fl_steer = -M_PI/4;
-          wheel_orientation = 1;
-        }
-        if (prev_fr_steer > (3/4)*M_PI_2 && prev_fr_steer < (-1/4)*M_PI_2) {
-          fr_steer = (3/4)*M_PI;
-          wheel_orientation = -1;
-        }
-        else {
-          fr_steer = M_PI/4;
-          wheel_orientation = 1;
-        }
-        if (prev_rl_steer > (3/4)*M_PI_2 && prev_rl_steer < (-1/4)*M_PI_2) {
-          rl_steer = (-3/4)*M_PI;
-          wheel_orientation = -1;
-        }
-        else {
-          rl_steer = M_PI/4;
-          wheel_orientation = 1;
-        }
-        if (prev_rr_steer > (1/4)*M_PI_2 && prev_rr_steer < (-3/4)*M_PI_2) {
-          rr_steer = (3/4)*M_PI;
-          wheel_orientation = -1;
-        }
-        else {
-          rr_steer = -M_PI/4;
-          wheel_orientation = 1;
-        }
+        // if (prev_fl_steer > (1/4)*M_PI_2 && prev_fl_steer < (-3/4)*M_PI_2) {
+        //   fl_steer = (3/4)*M_PI;
+        //   wheel_orientation = -1.0;
+        // }
+        // else {
+        //   fl_steer = -M_PI/4;
+        //   wheel_orientation = 1.0;
+        // }
+        // if (prev_fr_steer > (3/4)*M_PI_2 && prev_fr_steer < (-1/4)*M_PI_2) {
+        //   fr_steer = (-3/4)*M_PI;
+        //   wheel_orientation = -1.0;
+        // }
+        // else {
+        //   fr_steer = M_PI/4;
+        //   wheel_orientation = 1.0;
+        // }
+        // if (prev_rl_steer > (3/4)*M_PI_2 && prev_rl_steer < (-1/4)*M_PI_2) {
+        //   rl_steer = (-3/4)*M_PI;
+        //   wheel_orientation = -1.0;
+        // }
+        // else {
+        //   rl_steer = M_PI/4;
+        //   wheel_orientation = 1.0;
+        // }
+        // if (prev_rr_steer > (1/4)*M_PI_2 && prev_rr_steer < (-3/4)*M_PI_2) {
+        //   rr_steer = (3/4)*M_PI;
+        //   wheel_orientation = -1.0;
+        // }
+        // else {
+        //   rr_steer = -M_PI/4;
+        //   wheel_orientation = 1.0;
+        // }
 
-        if (vel_yaw < 0) {
-          direction = -1;
+        fl_steer = -M_PI/4;
+        fr_steer = M_PI/4;
+        rl_steer = M_PI/4;
+        rr_steer = -M_PI/4;
+
+        if (vel_yaw < 0.0) {
+          direction = -1.0;
         }
         else {
-          direction = 1;
+          direction = 1.0;
         }
 
         fl_speed = -direction*wheel_orientation*ref_speed;
@@ -155,10 +160,10 @@ void PnDControlNode::VelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
 
         publish_four_wheel_cmd(fl_speed, fr_speed, rl_speed, rr_speed, fl_steer, fr_steer, rl_steer, rr_steer);
 
-        prev_fl_steer = fl_steer;
-        prev_fr_steer = fr_steer;
-        prev_rl_steer = rl_steer;
-        prev_rr_steer = rr_steer; 
+        // prev_fl_steer = fl_steer;
+        // prev_fr_steer = fr_steer;
+        // prev_rl_steer = rl_steer;
+        // prev_rr_steer = rr_steer; 
       }
     }
     else if(drive_mode == pnd_msgs::msg::DriveMode::DIFFERENTIAL)
